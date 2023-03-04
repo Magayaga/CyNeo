@@ -2,7 +2,7 @@
  * Copyright 2023 Cyril John Magayaga
  */
 
-#define KILO_VERSION "1.0-alpha1"
+#define CYNEO_VERSION "1.0-alpha1"
 
 #ifdef __linux__
 #define _POSIX_C_SOURCE 200809L
@@ -864,7 +864,7 @@ void editorRefreshScreen(void) {
             if (E.numrows == 0 && y == E.screenrows/3) {
                 char welcome[80];
                 int welcomelen = snprintf(welcome,sizeof(welcome),
-                    "CyNeo (text editor) -- verison %s\x1b[0K\r\n", KILO_VERSION);
+                    "CyNeo (text editor) -- verison %s\x1b[0K\r\n", CYNEO_VERSION);
                 int padding = (E.screencols-welcomelen)/2;
                 if (padding) {
                     abAppend(&ab,"~",1);
