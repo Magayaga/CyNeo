@@ -690,6 +690,17 @@ void editorInsertChar(int c) {
     E.dirty++;
 }
 
+void editorCopy(void) {
+    printf("Upcoming on Copy!\n");
+}
+
+void editorPaste(void) {
+    printf("Upcoming on Paste!\n");
+}
+
+void editorCut(void) {
+    printf("Upcoming on Cut!\n");
+}
 /* Inserting a newline is slightly complex as we have to handle inserting a
  * newline in the middle of a line, splitting the line as needed. */
 void editorInsertNewline(void) {
@@ -1154,32 +1165,31 @@ void editorMoveCursor(int key) {
 
 /* Process events arriving from the standard input, which is, the user
  * is typing stuff on the terminal. */
-#define KILO_QUIT_TIMES 3
+#define CYNEO_QUIT_TIMES 3
 void editorProcessKeypress(int fd) {
     /* When the file is modified, requires Ctrl-q to be pressed N times
      * before actually quitting. */
-    static int quit_times = KILO_QUIT_TIMES;
+    static int quit_times = CYNEO_QUIT_TIMES;
 
     int c = editorReadKey(fd);
     switch(c) {
     case ENTER:         /* Enter */
         editorInsertNewline();
         break;
-    case CTRL_C:        /* Ctrl-c */
-        /* We ignore ctrl-c, it can't be so simple to lose the changes
-         * to the edited file. */
+    case CTRL_C:        /* Ctrl+c */
+        editorCopy();
         break;
-    case CTRL_Q:        /* Ctrl-q */
+    case CTRL_Q:        /* Ctrl+q */
         /* Quit if the file was already saved. */
         if (E.dirty && quit_times) {
             editorSetStatusMessage("WARNING!!! File has unsaved changes. "
-                "Press Ctrl-Q %d more times to quit.", quit_times);
+                "Press Ctrl+Q %d more times to quit.", quit_times);
             quit_times--;
             return;
         }
         exit(0);
         break;
-    case CTRL_S:        /* Ctrl-s */
+    case CTRL_S:        /* Ctrl+s */
         editorSave();
         break;
     case CTRL_F:
@@ -1221,7 +1231,7 @@ void editorProcessKeypress(int fd) {
         break;
     }
 
-    quit_times = KILO_QUIT_TIMES; /* Reset it to the original value. */
+    quit_times = CYNEO_QUIT_TIMES; /* Reset it to the original value. */
 }
 
 int editorFileWasModified(void) {
@@ -1269,7 +1279,7 @@ int main(int argc, char **argv) {
     editorOpen(argv[1]);
     enableRawMode(STDIN_FILENO);
     editorSetStatusMessage(
-        "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find");
+        "HELP: Ctrl+S = SAVE | Ctrl+Q = QUIT | Ctrl+F = FIND | Ctrl+C = COPY\n");
     while(1) {
         editorRefreshScreen();
         editorProcessKeypress(STDIN_FILENO);
