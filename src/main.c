@@ -8,20 +8,20 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <time.h>
 #include <termios.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
-#include <ctype.h>
-#include <time.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdarg.h>
-#include <fcntl.h>
 #include <signal.h>
 
 /* Syntax highlight types */
@@ -83,16 +83,16 @@ static struct editorConfig E;
 
 enum KEY_ACTION{
         KEY_NULL = 0,       /* NULL */
-        CTRL_C = 3,         /* Ctrl-c */
-        CTRL_D = 4,         /* Ctrl-d */
-        CTRL_F = 6,         /* Ctrl-f */
-        CTRL_H = 8,         /* Ctrl-h */
+        CTRL_C = 3,         /* Ctrl+c */
+        CTRL_D = 4,         /* Ctrl+d */
+        CTRL_F = 6,         /* Ctrl+F */
+        CTRL_H = 8,         /* Ctrl+H */
         TAB = 9,            /* Tab */
-        CTRL_L = 12,        /* Ctrl+l */
+        CTRL_L = 12,        /* Ctrl+L */
         ENTER = 13,         /* Enter */
-        CTRL_Q = 17,        /* Ctrl-q */
-        CTRL_S = 19,        /* Ctrl-s */
-        CTRL_U = 21,        /* Ctrl-u */
+        CTRL_Q = 17,        /* Ctrl+Q */
+        CTRL_S = 19,        /* Ctrl+S */
+        CTRL_U = 21,        /* Ctrl+* */
         ESC = 27,           /* Escape */
         BACKSPACE =  127,   /* Backspace */
         /* The following are just soft codes, not really reported by the
@@ -520,6 +520,44 @@ void editorSelectSyntaxHighlight(char *filename) {
     }
 }
 
+/* ======================= Color to Your Output From C ======================= */
+/* Color like texts */
+void black() {
+  printf("\030[1;30m");
+}
+
+void red() {
+  printf("\033[1;31m");
+}
+
+void green() {
+  printf("\033[1;32m");
+}
+
+void yellow() {
+  printf("\033[1;33m");
+}
+
+void blue() {
+  printf("\033[1;34m");
+}
+
+void purple() {
+  printf("\033[1;35m");
+}
+
+void cyan() {
+  printf("\033[1;36m");
+}
+
+void white() {
+  printf("\033[1;37m");
+}
+
+void resetColor() {
+  printf("\033[0m");
+}
+
 /* ======================= Editor rows implementation ======================= */
 
 /* Update the rendered version and the syntax highlight of a row. */
@@ -875,7 +913,7 @@ void editorRefreshScreen(void) {
             if (E.numrows == 0 && y == E.screenrows/3) {
                 char welcome[80];
                 int welcomelen = snprintf(welcome,sizeof(welcome),
-                    "CyNeo (text editor) -- verison %s\x1b[0K\r\n", CYNEO_VERSION);
+                    "CyNeo (text editor) -- version %s\x1b[0K\r\n", CYNEO_VERSION);
                 int padding = (E.screencols-welcomelen)/2;
                 if (padding) {
                     abAppend(&ab,"~",1);
@@ -1176,10 +1214,10 @@ void editorProcessKeypress(int fd) {
     case ENTER:         /* Enter */
         editorInsertNewline();
         break;
-    case CTRL_C:        /* Ctrl+c */
+    case CTRL_C:        /* Ctrl+C */
         editorCopy();
         break;
-    case CTRL_Q:        /* Ctrl+q */
+    case CTRL_Q:        /* Ctrl+Q */
         /* Quit if the file was already saved. */
         if (E.dirty && quit_times) {
             editorSetStatusMessage("WARNING!!! File has unsaved changes. "
@@ -1189,14 +1227,14 @@ void editorProcessKeypress(int fd) {
         }
         exit(0);
         break;
-    case CTRL_S:        /* Ctrl+s */
+    case CTRL_S:        /* Ctrl+S */
         editorSave();
         break;
     case CTRL_F:
         editorFind(fd);
         break;
     case BACKSPACE:     /* Backspace */
-    case CTRL_H:        /* Ctrl-h */
+    case CTRL_H:        /* Ctrl+H */
     case DEL_KEY:
         editorDelChar();
         break;
@@ -1271,6 +1309,11 @@ void initEditor(void) {
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr,"Usage: CyNeo <filename>\n");
+        red();
+        printf("Error: ");
+        yellow();
+        printf("No input files\n");
+        resetColor();
         exit(1);
     }
 
