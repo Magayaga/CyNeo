@@ -2,4 +2,4 @@
 # Copyright 2023 Cyril John Magayaga
 
 cyneo:
-	cc src/CyNeo.c -o CyNeo # Run the program
+	cc src/main.c -o CyNeo # Run the program
