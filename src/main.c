@@ -2,27 +2,13 @@
  * Copyright 2023 Cyril John Magayaga
  */
 
-#define CYNEO_VERSION "1.0-alpha1"
+#define CYNEO_VERSION "1.0-alpha2"
 
 #ifdef __linux__
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <time.h>
-#include <termios.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <signal.h>
+#include "magayaga.h"
 
 /* Syntax highlight types */
 #define HL_NORMAL 0
@@ -83,16 +69,16 @@ static struct editorConfig E;
 
 enum KEY_ACTION{
         KEY_NULL = 0,       /* NULL */
-        CTRL_C = 3,         /* Ctrl+c */
-        CTRL_D = 4,         /* Ctrl+d */
-        CTRL_F = 6,         /* Ctrl+F */
-        CTRL_H = 8,         /* Ctrl+H */
+        CTRL_C = 3,         /* Ctrl-c */
+        CTRL_D = 4,         /* Ctrl-d */
+        CTRL_F = 6,         /* Ctrl-f */
+        CTRL_H = 8,         /* Ctrl-h */
         TAB = 9,            /* Tab */
-        CTRL_L = 12,        /* Ctrl+L */
+        CTRL_L = 12,        /* Ctrl+l */
         ENTER = 13,         /* Enter */
-        CTRL_Q = 17,        /* Ctrl+Q */
-        CTRL_S = 19,        /* Ctrl+S */
-        CTRL_U = 21,        /* Ctrl+* */
+        CTRL_Q = 17,        /* Ctrl-q */
+        CTRL_S = 19,        /* Ctrl-s */
+        CTRL_U = 21,        /* Ctrl-u */
         ESC = 27,           /* Escape */
         BACKSPACE =  127,   /* Backspace */
         /* The following are just soft codes, not really reported by the
@@ -520,44 +506,6 @@ void editorSelectSyntaxHighlight(char *filename) {
     }
 }
 
-/* ======================= Color to Your Output From C ======================= */
-/* Color like texts */
-void black() {
-  printf("\030[1;30m");
-}
-
-void red() {
-  printf("\033[1;31m");
-}
-
-void green() {
-  printf("\033[1;32m");
-}
-
-void yellow() {
-  printf("\033[1;33m");
-}
-
-void blue() {
-  printf("\033[1;34m");
-}
-
-void purple() {
-  printf("\033[1;35m");
-}
-
-void cyan() {
-  printf("\033[1;36m");
-}
-
-void white() {
-  printf("\033[1;37m");
-}
-
-void resetColor() {
-  printf("\033[0m");
-}
-
 /* ======================= Editor rows implementation ======================= */
 
 /* Update the rendered version and the syntax highlight of a row. */
@@ -728,17 +676,6 @@ void editorInsertChar(int c) {
     E.dirty++;
 }
 
-void editorCopy(void) {
-    printf("Upcoming on Copy!\n");
-}
-
-void editorPaste(void) {
-    printf("Upcoming on Paste!\n");
-}
-
-void editorCut(void) {
-    printf("Upcoming on Cut!\n");
-}
 /* Inserting a newline is slightly complex as we have to handle inserting a
  * newline in the middle of a line, splitting the line as needed. */
 void editorInsertNewline(void) {
@@ -913,7 +850,7 @@ void editorRefreshScreen(void) {
             if (E.numrows == 0 && y == E.screenrows/3) {
                 char welcome[80];
                 int welcomelen = snprintf(welcome,sizeof(welcome),
-                    "CyNeo (text editor) -- version %s\x1b[0K\r\n", CYNEO_VERSION);
+                    "CyNeo (text editor) -- verison %s\x1b[0K\r\n", CYNEO_VERSION);
                 int padding = (E.screencols-welcomelen)/2;
                 if (padding) {
                     abAppend(&ab,"~",1);
@@ -1203,38 +1140,39 @@ void editorMoveCursor(int key) {
 
 /* Process events arriving from the standard input, which is, the user
  * is typing stuff on the terminal. */
-#define CYNEO_QUIT_TIMES 3
+#define KILO_QUIT_TIMES 3
 void editorProcessKeypress(int fd) {
     /* When the file is modified, requires Ctrl-q to be pressed N times
      * before actually quitting. */
-    static int quit_times = CYNEO_QUIT_TIMES;
+    static int quit_times = KILO_QUIT_TIMES;
 
     int c = editorReadKey(fd);
     switch(c) {
     case ENTER:         /* Enter */
         editorInsertNewline();
         break;
-    case CTRL_C:        /* Ctrl+C */
-        editorCopy();
+    case CTRL_C:        /* Ctrl-c */
+        /* We ignore ctrl-c, it can't be so simple to lose the changes
+         * to the edited file. */
         break;
-    case CTRL_Q:        /* Ctrl+Q */
+    case CTRL_Q:        /* Ctrl-q */
         /* Quit if the file was already saved. */
         if (E.dirty && quit_times) {
             editorSetStatusMessage("WARNING!!! File has unsaved changes. "
-                "Press Ctrl+Q %d more times to quit.", quit_times);
+                "Press Ctrl-Q %d more times to quit.", quit_times);
             quit_times--;
             return;
         }
         exit(0);
         break;
-    case CTRL_S:        /* Ctrl+S */
+    case CTRL_S:        /* Ctrl-s */
         editorSave();
         break;
     case CTRL_F:
         editorFind(fd);
         break;
     case BACKSPACE:     /* Backspace */
-    case CTRL_H:        /* Ctrl+H */
+    case CTRL_H:        /* Ctrl-h */
     case DEL_KEY:
         editorDelChar();
         break;
@@ -1269,7 +1207,7 @@ void editorProcessKeypress(int fd) {
         break;
     }
 
-    quit_times = CYNEO_QUIT_TIMES; /* Reset it to the original value. */
+    quit_times = KILO_QUIT_TIMES; /* Reset it to the original value. */
 }
 
 int editorFileWasModified(void) {
@@ -1309,11 +1247,6 @@ void initEditor(void) {
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr,"Usage: CyNeo <filename>\n");
-        red();
-        printf("Error: ");
-        yellow();
-        printf("No input files\n");
-        resetColor();
         exit(1);
     }
 
@@ -1322,7 +1255,7 @@ int main(int argc, char **argv) {
     editorOpen(argv[1]);
     enableRawMode(STDIN_FILENO);
     editorSetStatusMessage(
-        "HELP: Ctrl+S = SAVE | Ctrl+Q = QUIT | Ctrl+F = FIND | Ctrl+C = COPY\n");
+        "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find");
     while(1) {
         editorRefreshScreen();
         editorProcessKeypress(STDIN_FILENO);
