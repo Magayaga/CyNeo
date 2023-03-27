@@ -2,7 +2,7 @@
  * Copyright 2023 Cyril John Magayaga
  */
 
-#define CYNEO_VERSION "1.0-alpha1"
+#define CYNEO_VERSION "1.0-alpha2"
 
 #ifdef __linux__
 #define _POSIX_C_SOURCE 200809L
