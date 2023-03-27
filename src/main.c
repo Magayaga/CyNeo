@@ -506,6 +506,44 @@ void editorSelectSyntaxHighlight(char *filename) {
     }
 }
 
+/* ======================= Color to Your Output From C ======================= */
+/* Color like texts */
+void black() {
+  printf("\030[1;30m");
+}
+
+void red() {
+  printf("\033[1;31m");
+}
+
+void green() {
+  printf("\033[1;32m");
+}
+
+void yellow() {
+  printf("\033[1;33m");
+}
+
+void blue() {
+  printf("\033[1;34m");
+}
+
+void purple() {
+  printf("\033[1;35m");
+}
+
+void cyan() {
+  printf("\033[1;36m");
+}
+
+void white() {
+  printf("\033[1;37m");
+}
+
+void resetColor() {
+  printf("\033[0m");
+}
+
 /* ======================= Editor rows implementation ======================= */
 
 /* Update the rendered version and the syntax highlight of a row. */
@@ -1257,6 +1295,12 @@ void initEditor(void) {
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr,"Usage: CyNeo <filename>\n");
+	red();
+	printf("Error: ");
+	resetColor();
+	yellow();
+	printf("No input files");
+	resetColor();
         exit(1);
     }
 
