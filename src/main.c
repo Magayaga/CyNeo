@@ -1299,7 +1299,7 @@ int main(int argc, char **argv) {
 	printf("Error: ");
 	resetColor();
 	yellow();
-	printf("No input files");
+	printf("No input files\n");
 	resetColor();
         exit(1);
     }
