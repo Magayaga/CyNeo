@@ -9,7 +9,6 @@
 #include_next <errno.h>
 #include_next <fcntl.h>
 #include_next <time.h>
-#include_next <termios.h>
 #include_next <stdlib.h>
 #include_next <stdio.h>
 #include_next <stdint.h>
