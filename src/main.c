@@ -1,14 +1,28 @@
 /* CyNeo - It is the modern text editor
- * Copyright 2023 Cyril John Magayaga
+ * Copyright 2023-2024 Cyril John Magayaga
  */
 
-#define CYNEO_VERSION "1.0-alpha3"
+#define CYNEO_VERSION "1.0-alpha4"
 
 #ifdef __linux__
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "magayaga.h"
+#include <termios.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <errno.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <stdarg.h>
+#include <fcntl.h>
+#include <signal.h>
 
 /* Syntax highlight types */
 #define HL_NORMAL 0
