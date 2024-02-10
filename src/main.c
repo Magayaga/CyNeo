@@ -84,6 +84,7 @@ static struct editorConfig E;
 enum KEY_ACTION{
         KEY_NULL = 0,       /* NULL */
         CTRL_C = 3,         /* Ctrl-c */
+        CTRL_V = 5,         /* Ctrl-v */
         CTRL_D = 4,         /* Ctrl-d */
         CTRL_F = 6,         /* Ctrl-f */
         CTRL_H = 8,         /* Ctrl-h */
@@ -245,7 +246,9 @@ int editorReadKey(int fd) {
                         case '6': return PAGE_DOWN;
                         }
                     }
-                } else {
+                }
+                
+                else {
                     switch(seq[1]) {
                     case 'A': return ARROW_UP;
                     case 'B': return ARROW_DOWN;
@@ -321,7 +324,9 @@ int getWindowSize(int ifd, int ofd, int *rows, int *cols) {
             /* Can't recover... */
         }
         return 0;
-    } else {
+    }
+    
+    else {
         *cols = ws.ws_col;
         *rows = ws.ws_row;
         return 0;
@@ -584,7 +589,9 @@ void editorUpdateRow(erow *row) {
         if (row->chars[j] == TAB) {
             row->render[idx++] = ' ';
             while((idx+1) % 8 != 0) row->render[idx++] = ' ';
-        } else {
+        }
+        
+        else {
             row->render[idx++] = row->chars[j];
         }
     }
@@ -728,17 +735,45 @@ void editorInsertChar(int c) {
     E.dirty++;
 }
 
+#define MAX_CLIPBOARD_SIZE 1000 // Maximum size of the clipboard
+
+char clipboard[MAX_CLIPBOARD_SIZE]; // Global variable to store clipboard content
+int clipboard_size = 0; // Variable to track the size of the clipboard content
+
 void editorCopy(void) {
-    printf("Upcoming on Copy!\n");
+    int i;
+    int filerow = E.rowoff + E.cy;
+    int filecol = E.coloff + E.cx;
+    erow *row = (filerow >= E.numrows) ? NULL : &E.row[filerow];
+    
+    if (!row) return;
+    
+    // Copy the content of the current row to the clipboard
+    for (i = 0; i < row->size; i++) {
+        clipboard[i] = row->chars[i];
+    }
+    clipboard_size = row->size;
 }
 
 void editorPaste(void) {
-    printf("Upcoming on Paste!\n");
+    int i;
+    int filerow = E.rowoff + E.cy;
+    int filecol = E.coloff + E.cx;
+    erow *row = (filerow >= E.numrows) ? NULL : &E.row[filerow];
+    
+    if (!row) return;
+    
+    // Paste the clipboard content at the current cursor position
+    for (i = 0; i < clipboard_size; i++) {
+        editorInsertChar(clipboard[i]);
+    }
 }
 
 void editorCut(void) {
-    printf("Upcoming on Cut!\n");
+    editorCopy(); // First, copy the content to the clipboard
+    editorDelChar(); // Then, delete the character at the cursor position
 }
+
 /* Inserting a newline is slightly complex as we have to handle inserting a
  * newline in the middle of a line, splitting the line as needed. */
 void editorInsertNewline(void) {
@@ -758,7 +793,9 @@ void editorInsertNewline(void) {
     if (filecol >= row->size) filecol = row->size;
     if (filecol == 0) {
         editorInsertRow(filerow,"",0);
-    } else {
+    }
+    
+    else {
         /* We are in the middle of a line. Split it between two rows. */
         editorInsertRow(filerow+1,row->chars+filecol,row->size-filecol);
         row = &E.row[filerow];
@@ -800,7 +837,9 @@ void editorDelChar() {
             E.cx -= shift;
             E.coloff += shift;
         }
-    } else {
+    }
+    
+    else {
         editorRowDelChar(row,filecol-1);
         if (E.cx == 0 && E.coloff)
             E.coloff--;
@@ -921,7 +960,9 @@ void editorRefreshScreen(void) {
                 }
                 while(padding--) abAppend(&ab," ",1);
                 abAppend(&ab,welcome,welcomelen);
-            } else {
+            }
+            
+            else {
                 abAppend(&ab,"~\x1b[0K\r\n",7);
             }
             continue;
@@ -946,13 +987,17 @@ void editorRefreshScreen(void) {
                         sym = '?';
                     abAppend(&ab,&sym,1);
                     abAppend(&ab,"\x1b[0m",4);
-                } else if (hl[j] == HL_NORMAL) {
+                }
+                
+                else if (hl[j] == HL_NORMAL) {
                     if (current_color != -1) {
                         abAppend(&ab,"\x1b[39m",5);
                         current_color = -1;
                     }
                     abAppend(&ab,c+j,1);
-                } else {
+                }
+                
+                else {
                     int color = editorSyntaxToColor(hl[j]);
                     if (color != current_color) {
                         char buf[16];
@@ -1059,7 +1104,9 @@ void editorFind(int fd) {
         if (c == DEL_KEY || c == CTRL_H || c == BACKSPACE) {
             if (qlen != 0) query[--qlen] = '\0';
             last_match = -1;
-        } else if (c == ESC || c == ENTER) {
+        }
+        
+        else if (c == ESC || c == ENTER) {
             if (c == ESC) {
                 E.cx = saved_cx; E.cy = saved_cy;
                 E.coloff = saved_coloff; E.rowoff = saved_rowoff;
@@ -1067,11 +1114,17 @@ void editorFind(int fd) {
             FIND_RESTORE_HL;
             editorSetStatusMessage("");
             return;
-        } else if (c == ARROW_RIGHT || c == ARROW_DOWN) {
+        }
+        
+        else if (c == ARROW_RIGHT || c == ARROW_DOWN) {
             find_next = 1;
-        } else if (c == ARROW_LEFT || c == ARROW_UP) {
+        }
+        
+        else if (c == ARROW_LEFT || c == ARROW_UP) {
             find_next = -1;
-        } else if (isprint(c)) {
+        }
+        
+        else if (isprint(c)) {
             if (qlen < KILO_QUERY_LEN) {
                 query[qlen++] = c;
                 query[qlen] = '\0';
@@ -1216,6 +1269,9 @@ void editorProcessKeypress(int fd) {
         break;
     case CTRL_C:        /* Ctrl+c */
         editorCopy();
+        break;
+    case CTRL_V:        /* Ctrl+v */
+        editorPaste();
         break;
     case CTRL_Q:        /* Ctrl+q */
         /* Quit if the file was already saved. */
