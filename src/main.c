@@ -1323,7 +1323,7 @@ int main(int argc, char **argv) {
     editorOpen(argv[1]);
     enableRawMode(STDIN_FILENO);
     editorSetStatusMessage(
-        "HELP: Ctrl+S = SAVE | Ctrl+Q = QUIT | Ctrl+F = FIND | Ctrl+C = COPY\n");
+        "HELP: ^S (Save) | ^Q (Quit) | ^F (Find) | ^C (Copy)\n");
     while(1) {
         editorRefreshScreen();
         editorProcessKeypress(STDIN_FILENO);
