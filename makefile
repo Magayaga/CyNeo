@@ -5,4 +5,4 @@ cyneo:
 	cc src/main.c -o CyNeo -Wall -W -pedantic -std=c99# Run the program
 
 clean:
-        rm CyNeo
+    rm CyNeo

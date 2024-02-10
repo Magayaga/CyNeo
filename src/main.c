@@ -739,6 +739,7 @@ void editorInsertChar(int c) {
 
 char clipboard[MAX_CLIPBOARD_SIZE]; // Global variable to store clipboard content
 int clipboard_size = 0; // Variable to track the size of the clipboard content
+void editorDelChar();
 
 void editorCopy(void) {
     int i;
