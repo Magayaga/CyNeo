@@ -13,10 +13,9 @@
 ```shell
 # Download the CyNeo's code
 $ git clone https://github.com/magayaga/CyNeo.git
-
 $ cd CyNeo
-# Run the CyNeo
 
+# Run the CyNeo
 $ make
 ```
 
